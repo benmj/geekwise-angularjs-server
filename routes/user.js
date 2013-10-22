@@ -3,6 +3,28 @@
  * GET users listing.
  */
 
+var mongo = require('mongodb'),
+	BSON = mongo.BSONPure;;
+
+var mongoUri = process.env.MONGOLAB_URI ||
+	process.env.MONGOHQ_URL ||
+	'mongodb://localhost/mydb';
+
 exports.list = function(req, res){
-  res.send("respond with a resource");
+	var q = {
+		"_student" : req.params.student
+	};
+
+	if (req.params.hasOwnProperty('id')){
+		q["_id"] = new BSON.ObjectID(req.params.id);
+	}
+
+	mongo.Db.connect(mongoUri, function (err, db) {
+		db.collection('users', function(er, collection) {
+			collection.find(q).toArray(function (err, results) {
+				res.json(results);
+			});
+		});
+	});
+
 };
