@@ -26,5 +26,20 @@ exports.list = function(req, res){
 			});
 		});
 	});
-
 };
+
+exports.post = function(req, res) {
+	mongo.Db.connect(mongoUri, function (err, db) {
+		db.collection('users', function(er, collection) {
+			collection.insert({
+				'firstName': req.body.firstName || '',
+				'lastName': req.body.lastName || '',
+				'nickName': req.body.nickName || '',
+				'email': req.body.email || '',
+				'_student': req.params.student
+			}, { safe: true}, function (err, doc) {
+				res.send(doc);
+			});
+		})
+	});
+}
