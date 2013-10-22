@@ -7,7 +7,51 @@ var express = require('express')
   , routes = require('./routes')
   , user = require('./routes/user')
   , http = require('http')
-  , path = require('path');
+  , path = require('path')
+  , mongo = require('mongodb');
+
+var mongoUri = process.env.MONGOLAB_URI ||
+  process.env.MONGOHQ_URL ||
+  'mongodb://localhost/mydb';
+
+mongo.Db.connect(mongoUri, function (err, db) {
+  db.collection('users', function(er, collection) {
+    collection.insert({
+    			"_student": "Ben",
+                "firstName": "John",
+                "lastName": "Doe",
+                "nickName": "Jonny Boy",
+                "email": "jonny@example.com"
+            }, {safe: true}, function(er,rs) {
+
+    });
+  });
+});
+
+mongo.Db.connect(mongoUri, function (err, db) {
+  db.collection('projects', function(er, collection) {
+    collection.insert({
+    			"_student": "Ben",
+		    	"title": "Top secret Acme project",
+				"description": "The details of this project are so disturbing, we can't even describe them.",
+				"status": "working on it",
+            }, {safe: true}, function(er,rs) {
+
+    });
+  });
+});
+
+mongo.Db.connect(mongoUri, function (err, db) {
+  db.collection('conversations', function(er, collection) {
+    collection.insert({
+    			"_student": "Ben",
+				"subject": "Gotta go to work",
+            }, {safe: true}, function(er,rs) {
+
+    });
+  });
+});
+
 
 var app = express();
 
