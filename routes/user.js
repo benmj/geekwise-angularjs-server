@@ -26,7 +26,11 @@ exports.list = function(req, res){
 	mongo.Db.connect(mongoUri, function (err, db) {
 		db.collection('users', function(er, collection) {
 			collection.find(q).toArray(function (err, results) {
-				res.json(results);
+				if (results.length) {
+					res.json(results);
+				} else {
+					res.send(404);
+				}
 			});
 		});
 	});
@@ -46,7 +50,7 @@ exports.post = function(req, res) {
 				'email': req.body.email || '',
 				'_student': req.params.student
 			}, { safe: true}, function (err, doc) {
-				res.send(doc);
+				res.send(201, doc);
 			});
 		})
 	});
@@ -62,7 +66,9 @@ exports.put = function (req, res) {
 		"_id" : new BSON.ObjectID(req.params.id)
 	};
 
-	var u = {};
+	var u = {
+		"_student" : req.params.student
+	};
 
 	if (req.body.hasOwnProperty('firstName'))
 		u['firstName'] = req.body.firstName;
@@ -76,8 +82,15 @@ exports.put = function (req, res) {
 	mongo.Db.connect(mongoUri, function (err, db) {
 		db.collection('users', function (er, collection) {
 			collection.update(q, { $set: u }, function (err, count) {
-				res.send();
-			})
+
+				collection.find(q).toArray(function (err, results) {
+					if (results.length) {
+						res.json(results);
+					} else {
+						res.send(404);
+					}
+				});
+			});
 		})
 	})
 }
@@ -95,7 +108,8 @@ exports.delete = function (req, res) {
 	mongo.Db.connect(mongoUri, function (err, db) {
 		db.collection('users', function (er, collection) {
 			collection.remove(q, function (err, doc) {
-				res.send();
+				// 204 No Content
+				res.send(204);
 			});
 		})
 	})
