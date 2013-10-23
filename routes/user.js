@@ -11,6 +11,9 @@ var mongoUri = process.env.MONGOLAB_URI ||
 	'mongodb://localhost/mydb';
 
 exports.list = function(req, res){
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+
 	var q = {
 		"_student" : req.params.student
 	};
@@ -29,6 +32,9 @@ exports.list = function(req, res){
 };
 
 exports.post = function(req, res) {
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+
 	mongo.Db.connect(mongoUri, function (err, db) {
 		db.collection('users', function(er, collection) {
 			collection.insert({
@@ -71,6 +77,9 @@ exports.put = function (req, res) {
 }
 
 exports.delete = function (req, res) {
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+
  	var q = {
 		"_student" : req.params.student,
 		"_id" : new BSON.ObjectID(req.params.id)
