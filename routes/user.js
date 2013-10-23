@@ -12,7 +12,7 @@ var mongoUri = process.env.MONGOLAB_URI ||
 
 exports.list = function(req, res){
 	res.header("Access-Control-Allow-Origin", "*");
-	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
 	var q = {
@@ -34,7 +34,7 @@ exports.list = function(req, res){
 
 exports.post = function(req, res) {
 	res.header("Access-Control-Allow-Origin", "*");
-	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
 	mongo.Db.connect(mongoUri, function (err, db) {
@@ -54,7 +54,7 @@ exports.post = function(req, res) {
 
 exports.put = function (req, res) {
 	res.header("Access-Control-Allow-Origin", "*");
-	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 	
  	var q = {
@@ -84,7 +84,7 @@ exports.put = function (req, res) {
 
 exports.delete = function (req, res) {
 	res.header("Access-Control-Allow-Origin", "*");
-	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
 	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
  	var q = {
