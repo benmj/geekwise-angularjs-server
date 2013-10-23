@@ -13,6 +13,7 @@ var mongoUri = process.env.MONGOLAB_URI ||
 exports.list = function(req, res){
 	res.header("Access-Control-Allow-Origin", "*");
 	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
 	var q = {
 		"_student" : req.params.student
@@ -34,6 +35,7 @@ exports.list = function(req, res){
 exports.post = function(req, res) {
 	res.header("Access-Control-Allow-Origin", "*");
 	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
 	mongo.Db.connect(mongoUri, function (err, db) {
 		db.collection('users', function(er, collection) {
@@ -51,6 +53,10 @@ exports.post = function(req, res) {
 }
 
 exports.put = function (req, res) {
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+	
  	var q = {
 		"_student" : req.params.student,
 		"_id" : new BSON.ObjectID(req.params.id)
@@ -79,6 +85,7 @@ exports.put = function (req, res) {
 exports.delete = function (req, res) {
 	res.header("Access-Control-Allow-Origin", "*");
 	res.header("Access-Control-Allow-Headers", "X-Requested-With");
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
  	var q = {
 		"_student" : req.params.student,

@@ -35,6 +35,7 @@ if ('development' == app.get('env')) {
 app.get('/', routes.index);
 app.options('/:student/users', user.list);
 app.options('/:student/users/:id', user.list);
+
 app.get('/:student/users', user.list);
 app.get('/:student/users/:id', user.list);
 app.post('/:student/users', user.post);
