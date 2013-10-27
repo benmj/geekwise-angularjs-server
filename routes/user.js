@@ -24,6 +24,11 @@ exports.list = function(req, res){
 	}
 
 	mongo.Db.connect(mongoUri, function (err, db) {
+		if (err) {
+			console.log(err);
+			return;
+		}
+
 		db.collection('users', function(er, collection) {
 			collection.find(q).toArray(function (err, results) {
 				if (results.length) {
