@@ -106,10 +106,9 @@ exports.list = function(req, res) {
 			projects = _.map(projects, function (project) {
 				project.conversations = _.map(project.conversations, function (conversation) {
 					conversation.messages = _.map(conversation.messages, function (message) {
-						console.log(message);
-						console.log(usersData);
 						var user = _.findWhere(usersData, { '_id' : message.userId });
 						message.user = user;
+						delete message.userId;
 						return message;
 					});
 
