@@ -7,6 +7,8 @@ var express = require('express')
   , routes = require('./routes')
   , user = require('./routes/user')
   , projects = require('./routes/projects')
+  , conversations = require('./routes/conversations')
+  , messages = require('./routes/messages')
   , http = require('http')
   , path = require('path')
   , mongo = require('mongodb');
@@ -44,10 +46,16 @@ app.delete('/:student/users/:id', user.delete);
 app.put('/:student/users/:id', user.put);
 
 app.options('/:student/projects', projects.list);
-app.options('/:student/projects:id', projects.list);
+app.options('/:student/projects/:id', projects.list);
 app.get('/:student/projects', projects.list);
-app.get('/:student/projects:id', projects.list);
+app.get('/:student/projects/:id', projects.list);
 app.post('/:student/projects', projects.post);
+
+app.options('/:student/projects/:id/conversations', conversations.list);
+app.post('/:student/projects/:id/conversations', conversations.post);
+
+app.options('/:student/projects/:id/conversations/:convId/messages', messages.list);
+app.post('/:student/projects/:id/conversations/:convId/messages', messages.post);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

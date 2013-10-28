@@ -158,6 +158,7 @@ exports.post = function (req, res) {
 	    "title": req.body.title || '',
 	    "description": req.body.description || '',
 	    "status": req.body.status || '',
+	    "conversations" : [],
 	    "_student" : req.params.student
 	})
 	.then(transformProjectsAddTeam)
