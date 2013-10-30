@@ -105,7 +105,7 @@ exports.post = function (req, res) {
 			mongo.Db.connect(mongoUri, function (err, db) {
 				db.collection('projects', function (err, collection) {
 					collection.update(query, { $set: project }, function (err, count) {
-						res.send(201);
+						res.send(201, [ newMessage ]);
 					})
 				})
 			})

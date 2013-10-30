@@ -39,8 +39,10 @@ exports.post = function (req, res) {
 	mongo.Db.connect(mongoUri, function (err, db) {
 		db.collection('projects', function (err, collection) {
 			collection.update(query, { $push : { conversations : newConversation }});
+			res.send(201, [ newConversation ]);
 		}, function (err, count) {
-			res.send(201);
+			res.send(500);
+			console.log(err);
 		});
 	});
 };
