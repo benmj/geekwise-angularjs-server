@@ -46,10 +46,12 @@ app.delete('/:student/users/:id', user.delete);
 app.put('/:student/users/:id', user.put);
 
 app.options('/:student/projects', projects.list);
-app.options('/:student/projects/:id', projects.list);
 app.get('/:student/projects', projects.list);
-app.get('/:student/projects/:id', projects.list);
 app.post('/:student/projects', projects.post);
+
+app.options('/:student/projects/:id', projects.list);
+app.get('/:student/projects/:id', projects.list);
+app.put('/:student/projects/:id', projects.put);
 
 app.options('/:student/conversations/:id', conversations.get);
 app.get('/:student/conversations/:id', conversations.get);

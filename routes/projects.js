@@ -3,177 +3,176 @@
  */
 
 var mongoUri = process.env.MONGOLAB_URI ||
-	process.env.MONGOHQ_URL ||
-	'mongodb://localhost/mydb';
+    process.env.MONGOHQ_URL ||
+    'mongodb://localhost/mydb';
 
 var mongo = require('mongodb'),
-	BSON = mongo.BSONPure;
+    BSON = mongo.BSONPure;
 
 var _ = require('underscore');
 var Q = require('q');
 
-function synchronousQuery(collectionName, query) {
-	var deferred = Q.defer();
-
-	mongo.Db.connect(mongoUri, function (err, db) {
-		db.collection(collectionName, function (err, collection) {
-			if (err) {
-				console.warn(err);
-			}
-
-			collection.find(query).toArray(function (err, results) {
-				if (err) {
-					console.warn(err);
-				}
-
-				deferred.resolve(JSON.parse(JSON.stringify(results)));
-			});
-		});
-	});
-
-	return deferred.promise;
-};
-
-function queryUsers (query) {
-	return synchronousQuery('users', query);
-};
-
-function queryConversations (query) {
-	return synchronousQuery('conversations', query);
-};
-
-function queryProjects (query) {
-	return synchronousQuery('projects', query);	
-};
-
-function synchronousInsert(collectionName, doc) {
-	var deferred = Q.defer();
-
-	mongo.Db.connect(mongoUri, function (err, db) {
-		db.collection(collectionName, function (err, collection) {
-			collection.insert(doc, { safe: true }, function (err, doc) {
-				deferred.resolve(doc);
-			});
-		});
-	});
-
-	return deferred.promise;
-};
+var geekwise = require('../shared/synchronous.js');
 
 function transformProjectsAddTeam (projects) {
-	var userPromises = [];
+    var userPromises = [];
 
-	var deferred = Q.defer();
+    var deferred = Q.defer();
 
-	_.chain(projects)
-		.pluck('team')
-		.flatten()
-		.uniq()
-		.each(function (id) {
-			userPromises.push(queryUsers({ "_id" : new BSON.ObjectID(id) }));
-		});
+    _.chain(projects)
+        .pluck('team')
+        .flatten()
+        .uniq()
+        .each(function (id) {
+            userPromises.push(geekwise.queryUsers({ "_id" : new BSON.ObjectID(id) }));
+        });
 
-	Q.all(userPromises)
-		.then(function (usersData) {
-			usersData = _.flatten(usersData);
+    Q.all(userPromises)
+        .then(function (usersData) {
+            usersData = _.flatten(usersData);
 
-			projects = _.map(projects, function (project) {
-				var users = [];
+            projects = _.map(projects, function (project) {
+                var users = [];
 
-				_.each(project.team, function (id) {
-					users.push(_.findWhere(usersData, { '_id' : id }));
-				});
+                _.each(project.team, function (id) {
+                    users.push(_.findWhere(usersData, { '_id' : id }));
+                });
 
-				project.team = _.filter(users, function (user) {
-					return user; // add if truthy
-				});
+                project.team = _.filter(users, function (user) {
+                    return user; // add if truthy
+                });
 
-				return project;
-			});
+                return project;
+            });
 
-			deferred.resolve([projects, usersData]);
-		});
+            deferred.resolve([projects, usersData]);
+        });
 
-	return deferred.promise;
+    return deferred.promise;
 }
 
 function transformProjectsAddUsers (data) {
-	// One cannot pass multiple values through Q.resolve. Must wrap in an array
-	var projects = data[0];
-	var usersData = data[1];
+    // One cannot pass multiple values through Q.resolve. Must wrap in an array
+    var projects = data[0];
+    var usersData = data[1];
 
- 	var deferred = Q.defer();
+    var deferred = Q.defer();
 
-	projects = _.map(projects, function (project) {
-		project.conversations = _.map(project.conversations, function (conversation) {
-			conversation.messages = _.map(conversation.messages, function (message) {
-				var user = _.findWhere(usersData, { '_id' : message.userId });
-				message.user = user;
-				delete message.userId;
-				return message;
-			});
+    projects = _.map(projects, function (project) {
+        project.conversations = _.map(project.conversations, function (conversation) {
+            conversation.messages = _.map(conversation.messages, function (message) {
+                var user = _.findWhere(usersData, { '_id' : message.userId });
+                message.user = user;
+                delete message.userId;
+                return message;
+            });
 
-			return conversation;
-		});
+            return conversation;
+        });
 
-		return project;
-	});
+        return project;
+    });
 
-	deferred.resolve(projects);
+    deferred.resolve(projects);
 
-	return deferred.promise;
+    return deferred.promise;
 }
 
 exports.list = function(req, res) {
-	res.header("Access-Control-Allow-Origin", "*");
-	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
-	var q = {
-		"_student" : req.params.student
-	};
+    var q = {
+        "_student" : req.params.student
+    };
 
-	if (req.params.hasOwnProperty('id')){
-		q["_id"] = new BSON.ObjectID(req.params.id);
-	}
+    if (req.params.hasOwnProperty('id')){
+        q["_id"] = new BSON.ObjectID(req.params.id);
+    }
 
-	queryProjects(q)
-		.then(transformProjectsAddTeam)
-		.then(transformProjectsAddUsers)
-		.then(function (projects) {
-			if (projects.length) {
-				res.send(
-					_.map(projects, function (project) {
-						if (!_.has(project, 'dueDate')) {
-							project.dueDate = null;
-						}
-						return project;
-					})
-				);
-			} else {
-				res.send(404);
-			}
-		});
+    geekwise.queryProjects(q)
+        .then(transformProjectsAddTeam)
+        .then(transformProjectsAddUsers)
+        .then(function (projects) {
+            if (projects.length) {
+                res.send(
+                    _.map(projects, function (project) {
+                        if (!_.has(project, 'dueDate')) {
+                            project.dueDate = null;
+                        }
+                        return project;
+                    })
+                );
+            } else {
+                res.send(404);
+            }
+        });
 };
 
 exports.post = function (req, res) {
-	res.header("Access-Control-Allow-Origin", "*");
-	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
-	synchronousInsert('projects', {
-	    "title": req.body.title || '',
-	    "description": req.body.description || '',
-	    "status": req.body.status || '',
-	    "conversations" : [],
-	    "team": req.body.team || [],
-	    "dueDate": _.has(req.body, 'dueDate') ? new Date(req.body.dueDate) : null,
-	    "_student" : req.params.student,
-	})
-	.then(transformProjectsAddTeam)
-	.then(transformProjectsAddUsers)
-	.then(function (newProject) {
-		res.send(newProject);
-	});
+    geekwise.synchronousInsert('projects', {
+        "title": req.body.title || '',
+        "description": req.body.description || '',
+        "status": req.body.status || '',
+        "conversations" : [],
+        "team": req.body.team || [],
+        "dueDate": _.has(req.body, 'dueDate') ? new Date(req.body.dueDate) : null,
+        "_student" : req.params.student,
+    })
+    .then(transformProjectsAddTeam)
+    .then(transformProjectsAddUsers)
+    .then(function (newProject) {
+        res.send(newProject);
+    });
+};
 
-}
+exports.put = function (req, res) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+
+    var q = {
+        "_id" : new BSON.ObjectID(req.params.id)
+    };
+
+    var u = {};
+
+    if (_.has(req.body, 'title')) 
+        u['title'] = req.body.title;
+    if (_.has(req.body, 'description')) 
+        u['description'] = req.body.description;
+    if (_.has(req.body, 'status')) 
+        u['status'] = req.body.status;
+    if (_.has(req.body, 'dueDate')) 
+        u['dueDate'] = req.body.dueDate;
+
+    mongo.Db.connect(mongoUri, function (err, db) {
+        db.collection('projects', function (err, collection) {
+            collection.update(q, { $set: u }, function (err, count) {
+                
+                geekwise.queryProjects(q)
+                    .then(transformProjectsAddTeam)
+                    .then(transformProjectsAddUsers)
+                    .then(function (projects) {
+                        if (projects.length) {
+                            res.send(
+                                _.map(projects, function (project) {
+                                    if (!_.has(project, 'dueDate')) {
+                                        project.dueDate = null;
+                                    }
+                                    return project;
+                                })
+                            );
+                        } else {
+                            res.send(404);
+                        }
+                    });
+            });
+        });
+    });
+};
