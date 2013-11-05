@@ -55,6 +55,7 @@ app.put('/:student/projects/:id', projects.put);
 
 app.options('/:student/conversations/:id', conversations.get);
 app.get('/:student/conversations/:id', conversations.get);
+app.put('/:student/conversations/:id', conversations.put);
 app.options('/:student/projects/:id/conversations', conversations.list);
 app.post('/:student/projects/:id/conversations', conversations.post);
 
