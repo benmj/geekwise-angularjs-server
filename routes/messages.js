@@ -12,55 +12,7 @@ var mongo = require('mongodb'),
 var _ = require('underscore');
 var Q = require('q');
 
-function synchronousQuery(collectionName, query) {
-	var deferred = Q.defer();
-
-	mongo.Db.connect(mongoUri, function (err, db) {
-		db.collection(collectionName, function (err, collection) {
-			if (err) {
-				console.warn(err);
-			}
-
-			collection.find(query).toArray(function (err, results) {
-				if (err) {
-					console.warn(err);
-				}
-
-				deferred.resolve(JSON.parse(JSON.stringify(results)));
-			});
-		});
-	});
-
-	return deferred.promise;
-};
-
-function queryUsers (query) {
-	return synchronousQuery('users', query);
-};
-
-function queryConversations (query) {
-	return synchronousQuery('conversations', query);
-};
-
-function queryProjects (query) {
-	return synchronousQuery('projects', query);	
-};
-
-function synchronousInsert(collectionName, doc) {
-	var deferred = Q.defer();
-
-	mongo.Db.connect(mongoUri, function (err, db) {
-		db.collection(collectionName, function (err, collection) {
-			collection.insert(doc, { safe: true }, function (err, doc) {
-				deferred.resolve(doc);
-			});
-		});
-	});
-
-	return deferred.promise;
-};
-
-
+var geekwise = require('../shared/synchronous.js');
 
 exports.list = function (req, res) {
 	res.header("Access-Control-Allow-Origin", "*");
@@ -88,7 +40,7 @@ exports.post = function (req, res) {
 		"_id" : new BSON.ObjectID()
 	};
 
-	queryProjects(query)
+	geekwise.queryProjects(query)
 		.then(function (projects) {
 			var project = projects[0];
 
@@ -111,3 +63,29 @@ exports.post = function (req, res) {
 			})
 		});
 };
+
+exports.get = function (req, res) {
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+
+	var query = {
+		"_student" : req.params.student,
+		"conversations.messages._id" : req.params.id // message Id is not BSON
+	};
+
+	geekwise.queryProjects(query)
+		.then(function (project) {
+			var message = _.chain(project[0].conversations)
+				.pluck('messages')
+				.flatten()
+				.findWhere({ '_id' : req.params.id })
+				.value();
+
+			if (message) {
+				res.send(200, message);
+			} else {
+				res.send(404);
+			}
+		});
+}

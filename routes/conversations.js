@@ -12,6 +12,8 @@ var mongo = require('mongodb'),
 var _ = require('underscore');
 var Q = require('q');
 
+var geekwise = require('../shared/synchronous.js');
+
 exports.list = function (req, res) {
 	res.header("Access-Control-Allow-Origin", "*");
 	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
@@ -45,4 +47,26 @@ exports.post = function (req, res) {
 			console.log(err);
 		});
 	});
+};
+
+exports.get = function (req, res) {
+	res.header("Access-Control-Allow-Origin", "*");
+	res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+	res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+
+	var query = {
+		"_student" : req.params.student,
+		"conversations._id" : req.params.id
+	};
+
+	geekwise.queryProjects(query)
+		.then(function (project) {
+			var conversations = _.findWhere(project[0].conversations, { '_id' : req.params.id });
+
+			if (conversation) {
+				req.send(200, conversation);
+			} else {
+				req.send(404);
+			}
+		});
 };

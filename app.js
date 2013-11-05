@@ -51,9 +51,13 @@ app.get('/:student/projects', projects.list);
 app.get('/:student/projects/:id', projects.list);
 app.post('/:student/projects', projects.post);
 
+app.options('/:student/conversations/:id', conversations.get);
+app.get('/:student/conversations/:id', conversations.get);
 app.options('/:student/projects/:id/conversations', conversations.list);
 app.post('/:student/projects/:id/conversations', conversations.post);
 
+app.options('/:student/messages/:id', messages.get);
+app.get('/:student/messages/:id', messages.get);
 app.options('/:student/projects/:id/conversations/:convId/messages', messages.list);
 app.post('/:student/projects/:id/conversations/:convId/messages', messages.post);
 

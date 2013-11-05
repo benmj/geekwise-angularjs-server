@@ -1,3 +1,6 @@
+/**
+ * shared query methods for server
+ */
 
 var mongoUri = process.env.MONGOLAB_URI ||
 	process.env.MONGOHQ_URL ||
@@ -9,7 +12,7 @@ var mongo = require('mongodb'),
 var _ = require('underscore');
 var Q = require('q');
 
-function synchronousQuery(collectionName, query) {
+exports.synchronousQuery = function (collectionName, query) {
 	var deferred = Q.defer();
 
 	mongo.Db.connect(mongoUri, function (err, db) {
@@ -31,19 +34,19 @@ function synchronousQuery(collectionName, query) {
 	return deferred.promise;
 };
 
-function queryUsers (query) {
-	return synchronousQuery('users', query);
+exports.queryUsers = function (query) {
+	return this.synchronousQuery('users', query);
 };
 
-function queryConversations (query) {
-	return synchronousQuery('conversations', query);
+exports.queryConversations = function (query) {
+	return this.synchronousQuery('conversations', query);
 };
 
-function queryProjects (query) {
-	return synchronousQuery('projects', query);	
+exports.queryProjects = function (query) {
+	return this.synchronousQuery('projects', query);	
 };
 
-function synchronousInsert(collectionName, doc) {
+exports.synchronousInsert = function (collectionName, doc) {
 	var deferred = Q.defer();
 
 	mongo.Db.connect(mongoUri, function (err, db) {
