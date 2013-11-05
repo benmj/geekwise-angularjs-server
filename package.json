@@ -8,8 +8,11 @@
   "dependencies": {
     "express": "3.3.4",
     "jade": "*",
-    "mongodb" : "1.1.11",
-    "underscore" : "latest",
-    "q" : "latest"
+    "mongodb": "1.1.11",
+    "underscore": "latest",
+    "q": "latest"
+  },
+  "devDependencies": {
+    "node-iso8601": "~1.0.0"
   }
 }

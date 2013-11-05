@@ -142,7 +142,14 @@ exports.list = function(req, res) {
 		.then(transformProjectsAddUsers)
 		.then(function (projects) {
 			if (projects.length) {
-				res.send(projects);
+				res.send(
+					_.map(projects, function (project) {
+						if (!_.has(project, 'dueDate')) {
+							project.dueDate = null;
+						}
+						return project;
+					})
+				);
 			} else {
 				res.send(404);
 			}
@@ -160,7 +167,8 @@ exports.post = function (req, res) {
 	    "status": req.body.status || '',
 	    "conversations" : [],
 	    "team": req.body.team || [],
-	    "_student" : req.params.student
+	    "dueDate": _.has(req.body, 'dueDate') ? new Date(req.body.dueDate) : null,
+	    "_student" : req.params.student,
 	})
 	.then(transformProjectsAddTeam)
 	.then(transformProjectsAddUsers)
