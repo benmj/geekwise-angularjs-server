@@ -129,18 +129,23 @@ exports.get = function (req, res) {
     "conversations.messages._id" : BSON.ObjectID(req.params.id)
   };
 
+  var message = {};
+
   geekwise.queryProjects(query)
     .then(function (project) {
-      var message = _.chain(project[0].conversations)
+      message = _.chain(project[0].conversations)
         .pluck('messages')
         .flatten()
         .findWhere({ '_id' : req.params.id })
         .value();
 
-      if (message) {
-        res.send(200, message);
-      } else {
+      if (!message) {
         res.send(404);
+      } else {
+        return geekwise.getUser(message.user);
       }
+    }).then(function (user) {
+      message.user = _.first(user);
+      res.send(message);
     });
 };

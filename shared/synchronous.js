@@ -76,3 +76,17 @@ exports.synchronousUpdate = function (collectionName, query, update) {
 
   return deferred.promise;
 };
+
+exports.getUser = function (userId) {
+  var deferred = Q.defer();
+
+  mongo.Db.connect(mongoUri, function (err, db) {
+    db.collection('users', function (err, collection) {
+      collection.find({ '_id' : new BSON.ObjectID(userId) }).toArray(function (err, results) {
+        deferred.resolve(results);
+      });
+    });
+  });
+
+  return deferred.promise;
+};
