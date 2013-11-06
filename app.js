@@ -64,6 +64,8 @@ app.get('/:student/messages/:id', messages.get);
 app.put('/:student/messages/:id', messages.put);
 app.options('/:student/projects/:id/conversations/:convId/messages', messages.list);
 app.post('/:student/projects/:id/conversations/:convId/messages', messages.post);
+app.options('/:student/conversations/:convId/messages', messages.list);
+app.post('/:student/conversations/:convId/messages', messages.post);
 
 http.createServer(app).listen(app.get('port'), function(){
   console.log('Express server listening on port ' + app.get('port'));

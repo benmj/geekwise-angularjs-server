@@ -26,7 +26,7 @@ exports.post = function (req, res) {
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
   var query = {
-    "_id" : new BSON.ObjectID(req.params.id)
+    "conversations._id" : new BSON.ObjectID(req.params.convId)
   };
 
   var newMessage = {
@@ -41,23 +41,38 @@ exports.post = function (req, res) {
     .then(function (projects) {
       var project = projects[0];
 
-      var conversation = _.findWhere(project.conversations, { "_id" : req.params.convId });
+      project.conversations = _.map(project.conversations, function (conversation) {
+        conversation._id = new BSON.ObjectID(conversation._id);
 
-      var index = project.conversations.indexOf(conversation);
+        conversation.messages = _.map(conversation.messages, function (message) {
+          message._id = new BSON.ObjectID(message._id);
+          return message;
+        });
+        
+        if (conversation._id.toString() === req.params.convId) {
+          conversation.messages.push(newMessage);
+        }
 
-      conversation.messages.push(newMessage);
-
-      project.conversations[index] = conversation;
+        return conversation;
+      });
 
       delete project._id;
 
-      mongo.Db.connect(mongoUri, function (err, db) {
-        db.collection('projects', function (err, collection) {
-          collection.update(query, { $set: project }, function (err, count) {
-            res.send(201, [ newMessage ]);
-          });
-        });
-      });
+      return geekwise.synchronousUpdate('projects', query, { $set : project });
+    }).then(function (count) {
+      return geekwise.queryProjects({ "conversations.messages._id" : newMessage._id });
+    }).then(function (projects) {
+      var message = _.chain(projects[0].conversations)
+        .pluck('messages')
+        .flatten()
+        .findWhere({'_id' : newMessage._id.toString()})
+        .value();
+
+      if (message) {
+        res.send(200, message);
+      } else {
+        res.send(500, "Whaaat?");
+      }
     });
 };
 
