@@ -22,7 +22,7 @@ function transformProjectsAddTeam(projects) {
     .flatten()
     .uniq()
     .each(function (id) {
-      userPromises.push(geekwise.queryUsers({ "_id" : new BSON.ObjectID(id) }));
+      userPromises.push(geekwise.queryUsers({ '_id' : new BSON.ObjectID(id)}));
     });
 
   Q.all(userPromises)
@@ -59,9 +59,8 @@ function transformProjectsAddUsers(data) {
   projects = _.map(projects, function (project) {
     project.conversations = _.map(project.conversations, function (conversation) {
       conversation.messages = _.map(conversation.messages, function (message) {
-        var user = _.findWhere(usersData, { '_id' : message.userId });
+        var user = _.findWhere(usersData, { '_id' : message.user });
         message.user = user;
-        delete message.userId;
         return message;
       });
 

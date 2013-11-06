@@ -65,11 +65,17 @@ exports.get = function (req, res) {
     .then(function (project) {
       var conversation = _.findWhere(project[0].conversations, { '_id' : req.params.id });
 
-      if (conversation) {
-        res.send(200, conversation);
-      } else {
-        res.send(404);
-      }
+      var userIDs = _.chain(conversation.messages).pluck('user').uniq().value()
+
+      geekwise.getListOfUsers(userIDs)
+        .then(function (users) {
+          conversation.messages = _.map(conversation.messages, function (message) {
+            message.user = _.findWhere(users, { '_id' : message.user });
+            return message;
+          });
+
+          res.send(200, conversation);
+        });
     });
 };
 

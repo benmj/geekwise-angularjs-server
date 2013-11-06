@@ -82,11 +82,33 @@ exports.getUser = function (userId) {
 
   mongo.Db.connect(mongoUri, function (err, db) {
     db.collection('users', function (err, collection) {
-      collection.find({ '_id' : new BSON.ObjectID(userId) }).toArray(function (err, results) {
+      collection.find({ '_id' : new BSON.ObjectID(userId)}).toArray(function (err, results) {
         deferred.resolve(results);
       });
     });
   });
+
+  return deferred.promise;
+};
+
+// this is a better, more functional implementation of projects.transformProjectsAddTeam
+//  - learning experiences had by all!!
+exports.getListOfUsers = function (users) {
+  var geekwise = this;
+
+  var deferred = Q.defer();
+  var userPromises = [];
+
+  _.each(users, function (userID) {
+    userPromises.push(geekwise.queryUsers({ '_id' : new BSON.ObjectID(userID) }));
+  });
+
+  Q.all(userPromises)
+    .then(function (usersData) {
+      var usersData = _.flatten(usersData);
+
+      deferred.resolve(usersData);
+    })
 
   return deferred.promise;
 };
