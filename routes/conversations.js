@@ -30,7 +30,6 @@ exports.post = function (req, res) {
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
   var query = {
-    "_student" : req.params.student,
     "_id" : new BSON.ObjectID(req.params.id)
   };
 
@@ -40,14 +39,16 @@ exports.post = function (req, res) {
     "_id" : new BSON.ObjectID()
   };
 
-  mongo.Db.connect(mongoUri, function (err, db) {
-    db.collection('projects', function (err, collection) {
-      collection.update(query, { $push : { conversations : newConversation }});
-      res.send(201, [ newConversation ]);
-    }, function (err, count) {
-      res.send(500);
-      console.log(err);
-    });
+  geekwise.synchronousUpdate('projects', query, {
+    $push : {
+      conversations : newConversation
+    }
+  }).then(function (count) {
+    return geekwise.queryProjects(query);
+  }).then(function (project) {
+    var conversation = _.findWhere(project[0].conversations, { '_id' : newConversation._id.toString() });
+
+    res.send(201, conversation);
   });
 };
 

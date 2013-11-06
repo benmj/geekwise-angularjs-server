@@ -62,3 +62,17 @@ exports.synchronousPut = function (collectionName, query, update) {
 
   return deferred.promise;
 };
+
+exports.synchronousUpdate = function (collectionName, query, update) {
+  var deferred = Q.defer();
+
+  mongo.Db.connect(mongoUri, function (err, db) {
+    db.collection(collectionName, function (err, collection) {
+      collection.update(query, update, function (err, count) {
+        deferred.resolve(count);
+      });
+    });
+  });
+
+  return deferred.promise;
+};
