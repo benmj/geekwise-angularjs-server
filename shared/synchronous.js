@@ -17,15 +17,7 @@ exports.synchronousQuery = function (collectionName, query) {
 
   mongo.Db.connect(mongoUri, function (err, db) {
     db.collection(collectionName, function (err, collection) {
-      if (err) {
-        console.warn(err);
-      }
-
       collection.find(query).toArray(function (err, results) {
-        if (err) {
-          console.warn(err);
-        }
-
         deferred.resolve(JSON.parse(JSON.stringify(results)));
       });
     });
@@ -59,17 +51,8 @@ exports.synchronousInsert = function (collectionName, doc) {
 exports.synchronousPut = function (collectionName, query, update) {
   var deferred = Q.defer();
 
-  console.log(query);
-  console.log(update);
-
   mongo.Db.connect(mongoUri, function (err, db) {
-
-    console.warn(err);
-
     db.collection(collectionName, function (err, collection) {
-
-      console.warn(err);
-      
       collection.update(query, { $set: update }, function (err, count) {
         console.warn(err);
         deferred.resolve(count);

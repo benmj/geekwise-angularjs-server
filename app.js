@@ -61,6 +61,7 @@ app.post('/:student/projects/:id/conversations', conversations.post);
 
 app.options('/:student/messages/:id', messages.get);
 app.get('/:student/messages/:id', messages.get);
+app.put('/:student/messages/:id', messages.put);
 app.options('/:student/projects/:id/conversations/:convId/messages', messages.list);
 app.post('/:student/projects/:id/conversations/:convId/messages', messages.post);
 
