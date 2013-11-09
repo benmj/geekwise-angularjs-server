@@ -102,7 +102,12 @@ exports.list = function (req, res) {
           })
         );
       } else {
-        res.send(404);
+        // this is a hack, we want a 404 if there was an id, but an empty set if getting the /list
+        if (_.has(q, "_id")) {
+          res.send(404);
+        } else {
+          res.json([]);
+        }
       }
     });
 };
@@ -173,7 +178,12 @@ exports.put = function (req, res) {
                 })
               );
             } else {
-              res.send(404);
+              // this is a hack, we want a 404 if there was an id, but an empty set if getting the /list
+              if (_.has(q, "_id")) {
+                res.send(404);
+              } else {
+                res.json([]);
+              }
             }
           });
       });
