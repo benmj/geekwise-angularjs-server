@@ -82,6 +82,22 @@ exports.put2 = function (req, res) {
 
   var u = {};
 
+  if (_.has(req.body, "title")) {
+    u.title = req.body.title;
+  }
+  if (_.has(req.body, "description")) {
+    u.description = req.body.description;
+  }
+  if (_.has(req.body, "status")) {
+    u.status = req.body.status;
+  }
+  if (_.has(req.body, "conversations")) {
+    u.conversations = req.body.conversations;
+  }
+  if (_.has(req.body, "dueDate")) {
+    u.dueDate = req.body.dueDate;
+  }
+
   var team = req.body.team || [];
 
   geekwise.getListOfUsers(team)
