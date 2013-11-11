@@ -25,47 +25,46 @@ exports.post = function (req, res) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
+  if (!_.has(req.body, "user")) {
+    res.send("400", "Request body must include field 'user'");
+    return;
+  }
+
   var query = {
-    "conversations._id" : new BSON.ObjectID(req.params.convId)
+    "conversations._id" : req.params.convId
   };
 
   var newMessage = {
     "message": req.body.message || '',
-    "user" : req.body.user || '',
     "created": new Date(),
     "modified" : new Date(),
-    "_id" : new BSON.ObjectID()
+    "_id" : new BSON.ObjectID().toString()
   };
 
-  geekwise.queryProjects(query)
-    .then(function (projects) {
+  geekwise.getUser(req.body.user)
+    .then(function (user) {
+      newMessage.user = user[0];
+
+      return geekwise.queryProjects(query);
+    }).then(function (projects) {
       var project = projects[0];
 
-      project.conversations = _.map(project.conversations, function (conversation) {
-        conversation._id = new BSON.ObjectID(conversation._id);
-
-        conversation.messages = _.map(conversation.messages, function (message) {
-          message._id = new BSON.ObjectID(message._id);
-          return message;
-        });
-        
-        if (conversation._id.toString() === req.params.convId) {
+      var conversations = _.map(project.conversations, function (conversation) {
+        if (conversation._id === req.params.convId) {
           conversation.messages.push(newMessage);
         }
 
         return conversation;
       });
 
-      delete project._id;
-
-      return geekwise.synchronousUpdate('projects', query, { $set : project });
+      return geekwise.synchronousUpdate('projects', query, { $set : { "conversations" : conversations } });
     }).then(function (count) {
-      return geekwise.queryProjects({ "conversations.messages._id" : newMessage._id });
+      return geekwise.queryProjects({ "conversations._id" : req.params.convId });
     }).then(function (projects) {
       var message = _.chain(projects[0].conversations)
         .pluck('messages')
         .flatten()
-        .findWhere({'_id' : newMessage._id.toString()})
+        .findWhere({ '_id' : newMessage._id })
         .value();
 
       if (message) {
@@ -82,7 +81,7 @@ exports.put = function (req, res) {
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
   var query = {
-    "conversations.messages._id" : new BSON.ObjectID(req.params.id)
+    "conversations.messages._id" : req.params.id
   };
 
   geekwise.queryProjects(query)
@@ -95,7 +94,6 @@ exports.put = function (req, res) {
             message.message = req.body.message || '';
             message.modified = new Date();
           }
-          message._id = new BSON.ObjectID(message._id);
           return message;
         });
         return conversation;
@@ -126,7 +124,7 @@ exports.get = function (req, res) {
 
   var query = {
     "_student" : req.params.student,
-    "conversations.messages._id" : BSON.ObjectID(req.params.id)
+    "conversations.messages._id" : req.params.id
   };
 
   var message = {};
@@ -142,10 +140,7 @@ exports.get = function (req, res) {
       if (!message) {
         res.send(404);
       } else {
-        return geekwise.getUser(message.user);
+        res.send(message);
       }
-    }).then(function (user) {
-      message.user = _.first(user);
-      res.send(message);
     });
 };

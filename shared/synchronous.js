@@ -54,7 +54,6 @@ exports.synchronousPut = function (collectionName, query, update) {
   mongo.Db.connect(mongoUri, function (err, db) {
     db.collection(collectionName, function (err, collection) {
       collection.update(query, { $set: update }, function (err, count) {
-        console.warn(err);
         deferred.resolve(count);
       });
     });
