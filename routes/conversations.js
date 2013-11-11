@@ -36,7 +36,7 @@ exports.post = function (req, res) {
   var newConversation = {
     "subject" : req.body.subject,
     "messages" : [],
-    "_id" : new BSON.ObjectID()
+    "_id" : new BSON.ObjectID().toString()
   };
 
   geekwise.synchronousUpdate('projects', query, {
@@ -46,7 +46,7 @@ exports.post = function (req, res) {
   }).then(function (count) {
     return geekwise.queryProjects(query);
   }).then(function (project) {
-    var conversation = _.findWhere(project[0].conversations, { '_id' : newConversation._id.toString() });
+    var conversation = _.findWhere(project[0].conversations, { '_id' : newConversation._id });
 
     res.send(201, conversation);
   });
@@ -58,24 +58,14 @@ exports.get = function (req, res) {
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
   var query = {
-    "conversations._id" : new BSON.ObjectID(req.params.id)
+    "conversations._id" : req.params.id
   };
 
   geekwise.queryProjects(query)
     .then(function (project) {
       var conversation = _.findWhere(project[0].conversations, { '_id' : req.params.id });
 
-      var userIDs = _.chain(conversation.messages).pluck('user').uniq().value()
-
-      geekwise.getListOfUsers(userIDs)
-        .then(function (users) {
-          conversation.messages = _.map(conversation.messages, function (message) {
-            message.user = _.findWhere(users, { '_id' : message.user });
-            return message;
-          });
-
-          res.send(200, conversation);
-        });
+      res.send(200, conversation);
     });
 };
 
@@ -85,7 +75,7 @@ exports.put = function (req, res) {
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
   var q = {
-    "conversations._id" : new BSON.ObjectID(req.params.id)
+    "conversations._id" : req.params.id
   };
 
   if (!_.has(req.body, 'subject')) {
@@ -101,12 +91,11 @@ exports.put = function (req, res) {
         if (conversation._id === req.params.id) {
           conversation.subject = req.body.subject;
         }
-        conversation._id = new BSON.ObjectID(conversation._id);
         return conversation;
       });
 
       return geekwise.synchronousPut('projects', q, { conversations: conversations });
-    }).then(function (count) {
+    }).then(function () {
       return geekwise.queryProjects(q);
     }).then(function (project) {
       var conversation = _.findWhere(project[0].conversations, { '_id' : req.params.id });
