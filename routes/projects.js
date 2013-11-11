@@ -12,70 +12,8 @@ var Q = require('q');
 
 var geekwise = require('../shared/synchronous.js');
 
-function transformProjectsAddTeam(projects) {
-  var userPromises = [];
-
-  var deferred = Q.defer();
-
-  _.chain(projects)
-    .pluck('team')
-    .flatten()
-    .uniq()
-    .each(function (id) {
-      userPromises.push(geekwise.queryUsers({ '_id' : new BSON.ObjectID(id)}));
-    });
-
-  Q.all(userPromises)
-    .then(function (usersData) {
-      usersData = _.flatten(usersData);
-
-      projects = _.map(projects, function (project) {
-        var users = [];
-
-        _.each(project.team, function (id) {
-          users.push(_.findWhere(usersData, { '_id' : id }));
-        });
-
-        project.team = _.filter(users, function (user) {
-          return user; // add if truthy
-        });
-
-        return project;
-      });
-
-      deferred.resolve([projects, usersData]);
-    });
-
-  return deferred.promise;
-}
-
-function transformProjectsAddUsers(data) {
-  // One cannot pass multiple values through Q.resolve. Must wrap in an array
-  var projects = data[0];
-  var usersData = data[1];
-
-  var deferred = Q.defer();
-
-  projects = _.map(projects, function (project) {
-    project.conversations = _.map(project.conversations, function (conversation) {
-      conversation.messages = _.map(conversation.messages, function (message) {
-        var user = _.findWhere(usersData, { '_id' : message.user });
-        message.user = user;
-        return message;
-      });
-
-      return conversation;
-    });
-
-    return project;
-  });
-
-  deferred.resolve(projects);
-
-  return deferred.promise;
-}
-
-exports.list = function (req, res) {
+// goal is to beat the 70 ms
+exports.list2 = function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
@@ -89,8 +27,6 @@ exports.list = function (req, res) {
   }
 
   geekwise.queryProjects(q)
-    .then(transformProjectsAddTeam)
-    .then(transformProjectsAddUsers)
     .then(function (projects) {
       if (projects.length) {
         res.send(
@@ -108,32 +44,34 @@ exports.list = function (req, res) {
         } else {
           res.json([]);
         }
-      }
-    });
+      }      
+    })
 };
 
-exports.post = function (req, res) {
+exports.post2 = function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
-  geekwise.synchronousInsert('projects', {
-    "title": req.body.title || '',
-    "description": req.body.description || '',
-    "status": req.body.status || '',
-    "conversations" : [],
-    "team": req.body.team || [],
-    "dueDate": _.has(req.body, 'dueDate') ? new Date(req.body.dueDate) : null,
-    "_student" : req.params.student
-  })
-    .then(transformProjectsAddTeam)
-    .then(transformProjectsAddUsers)
-    .then(function (newProject) {
+  var team = req.body.team || [];
+
+  geekwise.getListOfUsers(team)
+    .then(function (usersOnTeam) {
+      return geekwise.synchronousInsert('projects', {
+          "title": req.body.title || '',
+          "description": req.body.description || '',
+          "status": req.body.status || '',
+          "conversations" : [],
+          "dueDate": _.has(req.body, 'dueDate') ? new Date(req.body.dueDate) : null,
+          "_student" : req.params.student,
+          "team": usersOnTeam,
+      });
+    }).then(function (newProject) {
       res.send(newProject);
     });
 };
 
-exports.put = function (req, res) {
+exports.put2 = function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
@@ -144,49 +82,16 @@ exports.put = function (req, res) {
 
   var u = {};
 
-  if (_.has(req.body, 'title')) {
-    u.title = req.body.title;
-  }
-  if (_.has(req.body, 'description')) {
-    u.description = req.body.description;
-  }
-  if (_.has(req.body, 'status')) {
-    u.status = req.body.status;
-  }
-  if (_.has(req.body, 'dueDate')) {
-    u.dueDate = req.body.dueDate;
-  }
-  if (_.has(req.body, 'team')) {
-    u.team = req.body.team;
-  }
+  var team = req.body.team || [];
 
-  mongo.Db.connect(mongoUri, function (err, db) {
-    db.collection('projects', function (err, collection) {
-      collection.update(q, { $set: u }, function (err, count) {
-
-        geekwise.queryProjects(q)
-          .then(transformProjectsAddTeam)
-          .then(transformProjectsAddUsers)
-          .then(function (projects) {
-            if (projects.length) {
-              res.send(
-                _.map(projects, function (project) {
-                  if (!_.has(project, 'dueDate')) {
-                    project.dueDate = null;
-                  }
-                  return project;
-                })
-              );
-            } else {
-              // this is a hack, we want a 404 if there was an id, but an empty set if getting the /list
-              if (_.has(q, "_id")) {
-                res.send(404);
-              } else {
-                res.json([]);
-              }
-            }
-          });
-      });
+  geekwise.getListOfUsers(team)
+    .then(function (usersOnTeam) {
+      u.team = usersOnTeam;
+  
+      return geekwise.synchronousPut('projects', q, u);
+    }).then(function () {
+      return geekwise.queryProjects(q);
+    }).then(function (projects) {
+      res.send(projects);
     });
-  });
 };
