@@ -29,6 +29,10 @@ exports.post = function (req, res) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
+  if (!req.get('Content-Type') || req.get('Content-Type') !== 'application/json') {
+    res.send(400, 'You must set the Content-Type header to "application/json"');
+  }
+
   var query = {
     "_id" : new BSON.ObjectID(req.params.id)
   };
@@ -73,6 +77,10 @@ exports.put = function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+
+  if (!req.get('Content-Type') || req.get('Content-Type') !== 'application/json') {
+    res.send(400, 'You must set the Content-Type header to "application/json"');
+  }
 
   var q = {
     "conversations._id" : req.params.id

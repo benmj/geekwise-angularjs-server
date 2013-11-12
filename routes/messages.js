@@ -25,6 +25,10 @@ exports.post = function (req, res) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
+  if (!req.get('Content-Type') || req.get('Content-Type') !== 'application/json') {
+    res.send(400, 'You must set the Content-Type header to "application/json"');
+  }
+
   if (!_.has(req.body, "user")) {
     res.send("400", "Request body must include field 'user'");
     return;
@@ -79,6 +83,10 @@ exports.put = function (req, res) {
   res.header("Access-Control-Allow-Origin", "*");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+
+  if (!req.get('Content-Type') || req.get('Content-Type') !== 'application/json') {
+    res.send(400, 'You must set the Content-Type header to "application/json"');
+  }
 
   var query = {
     "conversations.messages._id" : req.params.id
