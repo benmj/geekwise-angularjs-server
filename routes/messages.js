@@ -25,7 +25,7 @@ exports.post = function (req, res) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
-  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') == -1) {
+  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') === -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
     return;
   }
@@ -85,7 +85,7 @@ exports.put = function (req, res) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
-  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') == -1) {
+  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') === -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
     return;
   }
@@ -133,7 +133,6 @@ exports.get = function (req, res) {
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
   var query = {
-    "_student" : req.params.student,
     "conversations.messages._id" : req.params.id
   };
 
@@ -152,5 +151,32 @@ exports.get = function (req, res) {
       } else {
         res.send(message);
       }
+    });
+};
+
+exports.remove = function (req, res) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+
+  var query = {
+    "conversations.messages._id" : req.params.id
+  };
+
+  geekwise.queryProjects(query)
+    .then(function (projects) {
+      var project = projects[0];
+
+      var conversations = _.map(project.conversations, function (conversation) {
+        var message = _.findWhere(conversation.messages, { "_id" : req.params.id});
+
+        conversation.messages = _.without(conversation.messages, message);
+
+        return conversation;
+      });
+
+      return geekwise.synchronousUpdate('projects', query, { $set : { conversations: conversations } });
+    }).then(function () {
+      res.send(204);
     });
 };
