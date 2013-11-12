@@ -46,8 +46,6 @@ app.delete('/:student/users/:id', user.delete);
 app.put('/:student/users/:id', user.put);
 
 
-
-
 app.options('/:student/projects', projects.list2);
 app.get('/:student/projects', projects.list2);
 app.options('/:student/projects/:id', projects.list2);
@@ -62,6 +60,8 @@ app.get('/:student/conversations/:id', conversations.get);
 app.put('/:student/conversations/:id', conversations.put);
 app.options('/:student/projects/:id/conversations', conversations.list);
 app.post('/:student/projects/:id/conversations', conversations.post);
+app.delete('/:student/conversations/:id', conversations.remove);
+
 
 app.options('/:student/messages/:id', messages.get);
 app.get('/:student/messages/:id', messages.get);

@@ -29,7 +29,7 @@ exports.post = function (req, res) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
-  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') == -1) {
+  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') === -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
     return;
   }
@@ -79,7 +79,7 @@ exports.put = function (req, res) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
-  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') == -1) {
+  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') === -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
     return;
   }
@@ -111,5 +111,28 @@ exports.put = function (req, res) {
       var conversation = _.findWhere(project[0].conversations, { '_id' : req.params.id });
 
       res.send(200, conversation);
+    });
+};
+
+exports.remove = function (req, res) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+
+  var q = {
+    "conversations._id" : req.params.id
+  };
+
+  geekwise.queryProjects(q)
+    .then(function (projects) {
+      var project = projects[0];
+
+      var conversationToRemove = _.findWhere(project.conversations, { "_id" : req.params.id });
+
+      var conversations = _.without(project.conversations, conversationToRemove);
+
+      return geekwise.synchronousUpdate('projects', q, { $set : { conversations: conversations } });
+    }).then(function () {
+      res.send(204);
     });
 };
