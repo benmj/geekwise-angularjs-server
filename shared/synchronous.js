@@ -48,6 +48,24 @@ exports.synchronousInsert = function (collectionName, doc) {
   return deferred.promise;
 };
 
+exports.synchronous = function (collectionName, query) {
+  var deferred = Q.defer();
+
+  mongo.Db.connect(mongoUri, function (err, db) {
+    db.collection(collectionName, function (err, collection) {
+      collection.remove(query, function (err) {
+        if (!err) {
+          deferred.resolve();
+        } else {
+          deferred.reject(err);
+        }
+      });
+    });
+  });
+
+  return deferred.promise;
+};
+
 exports.synchronousPut = function (collectionName, query, update) {
   var deferred = Q.defer();
 
@@ -104,10 +122,11 @@ exports.getListOfUsers = function (users) {
 
   Q.all(userPromises)
     .then(function (usersData) {
-      var usersData = _.flatten(usersData);
+      var userData = _.flatten(usersData);
 
-      deferred.resolve(usersData);
-    })
+      deferred.resolve(userData);
+    });
 
   return deferred.promise;
 };
+

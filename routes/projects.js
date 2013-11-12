@@ -53,7 +53,7 @@ exports.post2 = function (req, res) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
-  if (!req.get('Content-Type') || req.get('Content-Type') !== 'application/json') {
+  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json')) != -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
   }
 
@@ -80,7 +80,7 @@ exports.put2 = function (req, res) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
-  if (!req.get('Content-Type') || req.get('Content-Type') !== 'application/json') {
+  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json')) != -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
   }
 
@@ -118,4 +118,15 @@ exports.put2 = function (req, res) {
     }).then(function (projects) {
       res.send(projects);
     });
+};
+
+exports.remove = function (req, res) {
+  res.header("Access-Control-Allow-Origin", "*");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
+
+  var q = {
+    "_id" : new BSON.ObjectID(req.params.id)
+  };
+
 };
