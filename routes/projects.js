@@ -53,7 +53,7 @@ exports.post2 = function (req, res) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
-  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') != -1) {
+  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') == -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
     return;
   }
@@ -81,7 +81,7 @@ exports.put2 = function (req, res) {
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
   res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE');
 
-  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') != -1) {
+  if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json') == -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
     return;
   }
