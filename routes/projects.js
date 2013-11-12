@@ -55,6 +55,7 @@ exports.post2 = function (req, res) {
 
   if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json')) != -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
+    return;
   }
 
   var team = req.body.team || [];
@@ -82,6 +83,7 @@ exports.put2 = function (req, res) {
 
   if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json')) != -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
+    return;
   }
 
   var q = {

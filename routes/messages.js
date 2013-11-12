@@ -27,6 +27,7 @@ exports.post = function (req, res) {
 
   if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json')) != -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
+    return;
   }
 
   if (!_.has(req.body, "user")) {
@@ -86,6 +87,7 @@ exports.put = function (req, res) {
 
   if (!req.get('Content-Type') || req.get('Content-Type').indexOf('application/json')) != -1) {
     res.send(400, 'You must set the Content-Type header to "application/json"');
+    return;
   }
 
   var query = {
