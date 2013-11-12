@@ -48,7 +48,7 @@ exports.synchronousInsert = function (collectionName, doc) {
   return deferred.promise;
 };
 
-exports.synchronous = function (collectionName, query) {
+exports.synchronousRemove = function (collectionName, query) {
   var deferred = Q.defer();
 
   mongo.Db.connect(mongoUri, function (err, db) {

@@ -131,4 +131,8 @@ exports.remove = function (req, res) {
     "_id" : new BSON.ObjectID(req.params.id)
   };
 
+  geekwise.synchronousRemove('projects', q)
+    .then(function () {
+      res.send(204);
+    });
 };
